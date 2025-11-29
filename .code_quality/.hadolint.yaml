@@ -10,6 +10,8 @@ ignored:
   # DL4006: Set the SHELL option -o pipefail before RUN with a pipe in
   # DL3059: Multiple consecutive RUN instructions
   - DL3013  # Allow pip upgrade without version pin (intentional)
+  - DL3033  # Allow yum install without version pin (system packages)
+  - DL3041  # Allow dnf install without version pin (system packages)
 
 # Severity settings
 failure-threshold: error  # error, warning, info, style, ignore
