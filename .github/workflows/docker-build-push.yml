@@ -1,0 +1,101 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: 'Python version to build'
+        required: false
+        default: '3.14'
+        type: choice
+        options:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+
+env:
+  DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+  IMAGE_NAME: docker-selenium-lambda
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        python_version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ matrix.python_version }}
+            type=raw,value=${{ matrix.python_version }}-{{sha}}
+            type=raw,value=python${{ matrix.python_version }}
+            type=raw,value=python${{ matrix.python_version }}-{{sha}}
+            type=raw,value=latest,enable=${{ matrix.python_version == '3.14' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python_version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-only:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        python_version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python_version }}
+          tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-python${{ matrix.python_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
