@@ -1,0 +1,52 @@
+# Files and directories to ignore in Docker build
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+LICENSE
+
+# Development settings
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Tests
+.pytest_cache
+.coverage
+htmlcov/
+.tox/
+
+# Linters and tools
+.code_quality/
+.hadolint.yaml
+.hadolint.yml
+dockerfilelint.json
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Others
+.DS_Store
+*.log
