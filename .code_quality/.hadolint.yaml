@@ -1,0 +1,20 @@
+# Hadolint configuration for Dockerfile
+# Hadolint is a linter for Dockerfiles that checks best practices and security
+
+# Rules enabled by default
+# To disable a specific rule, add it to ignored:
+ignored:
+  # DL3008: Pin versions in apt get install
+  # DL3009: Delete the apt-get lists after installing
+  # DL3015: Avoid additional packages by using --no-install-recommends
+  # DL4006: Set the SHELL option -o pipefail before RUN with a pipe in
+  # DL3059: Multiple consecutive RUN instructions
+  - DL3013  # Allow pip upgrade without version pin (intentional)
+
+# Severity settings
+failure-threshold: error  # error, warning, info, style, ignore
+
+# Enabled tags (best practices)
+trustedRegistries:
+  - docker.io
+  - public.ecr.aws
