@@ -1,7 +1,11 @@
-.PHONY: lint build test run help
+.PHONY: lint build test run push help
 
-IMAGE_NAME = lambda-python-314
+IMAGE_NAME = docker-selenium-lambda
 DOCKERFILE = Dockerfile
+PYTHON_VERSION ?= 3.14
+DOCKER_HUB_USER ?= $(shell echo $$DOCKER_HUB_USER)
+DOCKER_HUB_REPO ?= $(shell echo $$DOCKER_HUB_REPO || echo $(IMAGE_NAME))
+DOCKER_HUB_TAG ?= latest
 
 help: ## Show this help message
 	@echo "Available commands:"
@@ -17,12 +21,12 @@ lint: ## Run Hadolint on Dockerfile
 	fi
 
 build: lint ## Build Docker image
-	@echo "Building Docker image..."
-	docker build -t $(IMAGE_NAME) .
+	@echo "Building Docker image with Python $(PYTHON_VERSION)..."
+	docker build --build-arg PYTHON_VERSION=$(PYTHON_VERSION) -t $(IMAGE_NAME):python$(PYTHON_VERSION) .
 
 test: build ## Test Docker image locally
-	@echo "Testing Docker image..."
-	docker run --rm -p 9000:8080 $(IMAGE_NAME) &
+	@echo "Testing Docker image with Python $(PYTHON_VERSION)..."
+	docker run --rm -p 9000:8080 $(IMAGE_NAME):python$(PYTHON_VERSION) &
 	@sleep 2
 	@curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" \
 		-H "Content-Type: application/json" \
@@ -30,8 +34,27 @@ test: build ## Test Docker image locally
 	@docker ps | grep $(IMAGE_NAME) | awk '{print $$1}' | xargs docker stop || true
 
 run: build ## Run Docker container
-	@echo "Running container..."
-	docker run --rm -p 9000:8080 $(IMAGE_NAME)
+	@echo "Running container with Python $(PYTHON_VERSION)..."
+	docker run --rm -p 9000:8080 $(IMAGE_NAME):python$(PYTHON_VERSION)
+
+push: build ## Push Docker image to Docker Hub
+	@if [ -z "$(DOCKER_HUB_USER)" ]; then \
+		echo "Error: DOCKER_HUB_USER not set. Set it as environment variable or use: make push DOCKER_HUB_USER=yourusername"; \
+		exit 1; \
+	fi
+	@echo "Tagging image for Docker Hub..."
+	docker tag $(IMAGE_NAME):python$(PYTHON_VERSION) $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):python$(PYTHON_VERSION)
+	docker tag $(IMAGE_NAME):python$(PYTHON_VERSION) $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):$(PYTHON_VERSION)
+	@if [ "$(PYTHON_VERSION)" = "3.14" ]; then \
+		docker tag $(IMAGE_NAME):python$(PYTHON_VERSION) $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):latest; \
+	fi
+	@echo "Pushing to Docker Hub..."
+	docker push $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):python$(PYTHON_VERSION)
+	docker push $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):$(PYTHON_VERSION)
+	@if [ "$(PYTHON_VERSION)" = "3.14" ]; then \
+		docker push $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):latest; \
+	fi
+	@echo "Image pushed successfully: $(DOCKER_HUB_USER)/$(DOCKER_HUB_REPO):python$(PYTHON_VERSION)"
 
 clean: ## Remove unused Docker images
 	@echo "Cleaning Docker images..."
