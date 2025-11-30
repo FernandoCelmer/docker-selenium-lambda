@@ -1,41 +1,61 @@
 # Docker Selenium Lambda
 
 [![Docker Lint](https://github.com/FernandoCelmer/docker-selenium-lambda/actions/workflows/docker-lint.yml/badge.svg)](https://github.com/FernandoCelmer/docker-selenium-lambda/actions/workflows/docker-lint.yml)
-[![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/Docker-Latest-blue.svg)](https://www.docker.com/)
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-fernandocelmer%2Fdocker--selenium--lambda-blue)](https://hub.docker.com/r/fernandocelmer/docker-selenium-lambda)
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange.svg)](https://aws.amazon.com/lambda/)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
 
-Base Dockerfile for AWS Lambda with multiple Python versions support, including Selenium, Chromium, ChromeDriver, code quality tools and linting.
+Base Dockerfile for AWS Lambda with Python 3.14, including Selenium with Chromium and Firefox support, code quality tools and linting.
 
 ## Features
 
-- **Multiple Python Versions** - Supports Python 3.9, 3.10, 3.11, 3.12, 3.13, and 3.14
+- **Python 3.14** - Latest Python version with build argument support
 - **Selenium 4.15.2** - Web automation framework
-- **Chromium** - Headless browser installed via system package
-- **ChromeDriver** - Chrome automation driver (version 131.0.6778.85)
+- **Chromium** - Headless browser (version 131.0.6778.85) with ChromeDriver
+- **Firefox** - Headless browser with GeckoDriver
+- **Tor Browser** - Privacy-focused browser with Tor network support
+- **Multiple Browser Support** - Separate Docker tags for Chromium, Firefox, and Tor
 - **Code Quality** - Hadolint for Dockerfile linting
-- **CI/CD** - Automated build and push for all Python versions
-
-## Supported Python Versions
-
-- Python 3.9
-- Python 3.10
-- Python 3.11
-- Python 3.12
-- Python 3.13
-- Python 3.14 (default)
+- **CI/CD** - Automated build and push for all browsers
 
 ## Commands
 
+### Chromium
 ```bash
 make lint
-make build
-make build PYTHON_VERSION=3.11
-make test
-make run
-make push DOCKER_HUB_USER=yourusername
+make build-chromium
+make test-chromium
+make run-chromium
+make push-chromium DOCKER_HUB_USER=yourusername
+```
+
+### Firefox
+```bash
+make lint
+make build-firefox
+make test-firefox
+make run-firefox
+make push-firefox DOCKER_HUB_USER=yourusername
+```
+
+### Tor Browser
+```bash
+make lint
+make build-tor
+make test-tor
+make run-tor
+make push-tor DOCKER_HUB_USER=yourusername
+```
+
+### Generic (defaults to Chromium)
+```bash
+make build BROWSER=chromium
+make build BROWSER=firefox
+make build BROWSER=tor
+make test BROWSER=chromium
+make run BROWSER=chromium
 ```
 
 ## Docker Hub
@@ -44,49 +64,73 @@ Pre-built images are available on Docker Hub: [fernandocelmer/docker-selenium-la
 
 ### Quick Start
 
+**Chromium (default):**
 ```bash
-docker pull fernandocelmer/docker-selenium-lambda:python3.14
-docker run -p 9000:8080 fernandocelmer/docker-selenium-lambda:python3.14
+docker pull fernandocelmer/docker-selenium-lambda:latest
+docker run -p 9000:8080 -e BROWSER=chromium fernandocelmer/docker-selenium-lambda:latest
+```
+
+**Firefox:**
+```bash
+docker pull fernandocelmer/docker-selenium-lambda:firefox
+docker run -p 9000:8080 -e BROWSER=firefox fernandocelmer/docker-selenium-lambda:firefox
+```
+
+**Tor Browser:**
+```bash
+docker pull fernandocelmer/docker-selenium-lambda:tor
+docker run -p 9000:8080 -e BROWSER=tor fernandocelmer/docker-selenium-lambda:tor
 ```
 
 ### Available Tags
 
-All Python versions are available:
+**Chromium:**
 ```bash
-docker pull fernandocelmer/docker-selenium-lambda:python3.9
-docker pull fernandocelmer/docker-selenium-lambda:python3.10
-docker pull fernandocelmer/docker-selenium-lambda:python3.11
-docker pull fernandocelmer/docker-selenium-lambda:python3.12
-docker pull fernandocelmer/docker-selenium-lambda:python3.13
-docker pull fernandocelmer/docker-selenium-lambda:python3.14
-docker pull fernandocelmer/docker-selenium-lambda:latest  # Python 3.14
+docker pull fernandocelmer/docker-selenium-lambda:latest
+docker pull fernandocelmer/docker-selenium-lambda:chromium
 ```
 
-Short version tags:
+**Firefox:**
 ```bash
-docker pull fernandocelmer/docker-selenium-lambda:3.9
-docker pull fernandocelmer/docker-selenium-lambda:3.10
-docker pull fernandocelmer/docker-selenium-lambda:3.11
-docker pull fernandocelmer/docker-selenium-lambda:3.12
-docker pull fernandocelmer/docker-selenium-lambda:3.13
-docker pull fernandocelmer/docker-selenium-lambda:3.14
+docker pull fernandocelmer/docker-selenium-lambda:firefox
 ```
+
+**Tor Browser:**
+```bash
+docker pull fernandocelmer/docker-selenium-lambda:tor
+```
+
+**Tag Descriptions:**
+- `latest` - Chromium browser (default tag)
+- `chromium` - Chromium browser
+- `firefox` - Firefox browser
+- `tor` - Tor Browser with Tor network support
 
 ## Build
 
-Build with default Python version (3.14):
+**Chromium:**
 ```bash
-docker build -t docker-selenium-lambda:python3.14 .
+docker build --build-arg BROWSER=chromium -t docker-selenium-lambda:chromium .
 ```
 
-Build with specific Python version:
+**Firefox:**
 ```bash
-docker build --build-arg PYTHON_VERSION=3.14 -t docker-selenium-lambda:python3.11 .
+docker build --build-arg BROWSER=firefox -t docker-selenium-lambda:firefox .
 ```
 
-Or using Makefile:
+**Tor Browser:**
 ```bash
-make build PYTHON_VERSION=3.14
+docker build --build-arg BROWSER=tor -t docker-selenium-lambda:tor .
+```
+
+**Using Makefile:**
+```bash
+make build-chromium
+make build-firefox
+make build-tor
+make build BROWSER=chromium
+make build BROWSER=firefox
+make build BROWSER=tor
 ```
 
 ## Test Lambda Function
@@ -100,18 +144,32 @@ curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" \
 ## Selenium Configuration
 
 The Dockerfile includes:
-- Chromium browser installed via system package manager (yum)
-- ChromeDriver for browser automation (downloaded from Chrome for Testing)
+- **Chromium**: Chrome for Testing (v131.0.6778.85) with ChromeDriver
+- **Firefox**: Latest Firefox with GeckoDriver (v0.34.0)
+- **Tor Browser**: Tor Browser (v13.0.16) with GeckoDriver and Tor network support
 - All required system dependencies for headless browser operation
 - Selenium Python package (4.15.2)
 
-The Lambda function is pre-configured with Chromium options optimized for AWS Lambda:
-- `--headless` - Run without GUI
+The Lambda function automatically detects the browser via `BROWSER` environment variable:
+- Set `BROWSER=chromium` for Chromium
+- Set `BROWSER=firefox` for Firefox
+- Set `BROWSER=tor` for Tor Browser
+
+**Chromium options optimized for AWS Lambda:**
+- `--headless=new` - Run without GUI
 - `--no-sandbox` - Required for Lambda environment
 - `--disable-dev-shm-usage` - Prevents shared memory issues
-- `--disable-gpu` - Disable GPU acceleration
 - `--single-process` - Run in single process mode
-- `--disable-software-rasterizer` - Disable software rasterizer
+
+**Firefox options optimized for AWS Lambda:**
+- `--headless` - Run without GUI
+- Optimized window size and memory settings
+
+**Tor Browser options optimized for AWS Lambda:**
+- `--headless` - Run without GUI
+- SOCKS5 proxy configured to 127.0.0.1:9050
+- Tor network routing enabled
+- Optimized window size and memory settings
 
 ## Code Quality
 

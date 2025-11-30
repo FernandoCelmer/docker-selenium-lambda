@@ -8,19 +8,6 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
-    inputs:
-      python_version:
-        description: 'Python version to build'
-        required: false
-        default: '3.14'
-        type: choice
-        options:
-          - '3.9'
-          - '3.10'
-          - '3.11'
-          - '3.12'
-          - '3.13'
-          - '3.14'
 
 env:
   DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
@@ -32,7 +19,8 @@ jobs:
     if: github.event_name != 'pull_request'
     strategy:
       matrix:
-        python_version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+        python_version: ['3.14']
+        browser: ['chromium', 'firefox', 'tor']
       fail-fast: false
     
     steps:
@@ -54,11 +42,10 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ matrix.python_version }}
-            type=raw,value=${{ matrix.python_version }}-{{sha}}
-            type=raw,value=python${{ matrix.python_version }}
-            type=raw,value=python${{ matrix.python_version }}-{{sha}}
-            type=raw,value=latest,enable=${{ matrix.python_version == '3.14' }}
+            type=raw,value=${{ matrix.browser }}
+            type=raw,value=${{ matrix.browser }}-{{sha}}
+            type=raw,value=latest,enable=${{ matrix.browser == 'chromium' }}
+            type=raw,value=latest-{{sha}},enable=${{ matrix.browser == 'chromium' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -68,6 +55,7 @@ jobs:
           push: true
           build-args: |
             PYTHON_VERSION=${{ matrix.python_version }}
+            BROWSER=${{ matrix.browser }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -78,7 +66,8 @@ jobs:
     if: github.event_name == 'pull_request'
     strategy:
       matrix:
-        python_version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+        python_version: ['3.14']
+        browser: ['chromium', 'firefox', 'tor']
       fail-fast: false
     
     steps:
@@ -96,6 +85,7 @@ jobs:
           push: false
           build-args: |
             PYTHON_VERSION=${{ matrix.python_version }}
-          tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-python${{ matrix.python_version }}
+            BROWSER=${{ matrix.browser }}
+          tags: ${{ secrets.DOCKER_HUB_USER }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}-${{ matrix.browser }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
