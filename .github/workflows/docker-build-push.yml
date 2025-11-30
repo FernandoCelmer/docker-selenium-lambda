@@ -35,6 +35,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USER }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          logout: false
 
       - name: Extract metadata
         id: meta
