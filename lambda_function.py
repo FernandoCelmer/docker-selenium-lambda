@@ -1,41 +1,28 @@
 """
-Lambda function for AWS Lambda Python 3.14 with Selenium
+Lambda function for AWS Lambda Python 3.14 with Selenium.
 """
 
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from tempfile import mkdtemp
+import os
+from typing import Any, Dict
+
+from browsers import create_driver
 
 
-def lambda_handler(event, _context):
+def lambda_handler(event: Dict[str, Any], _context: Any) -> Dict[str, Any]:
     """
-    Default handler for AWS Lambda function with Selenium
+    Default handler for AWS Lambda function with Selenium.
 
     Args:
-        event: Event data that triggered the function
-        context: Execution context information
+        event: Event data that triggered the function.
+        _context: Execution context information.
 
     Returns:
-        dict: Lambda function response
+        dict: Lambda function response with status code and body.
     """
-    options = webdriver.ChromeOptions()
-    service = webdriver.ChromeService("/opt/chromedriver")
+    browser = os.environ.get("BROWSER", "chromium").lower()
 
-    options.binary_location = '/opt/chrome/chrome'
-    options.add_argument("--headless=new")
-    options.add_argument('--no-sandbox')
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1280,1696")
-    options.add_argument("--single-process")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-dev-tools")
-    options.add_argument("--no-zygote")
-    options.add_argument(f"--user-data-dir={mkdtemp()}")
-    options.add_argument(f"--data-path={mkdtemp()}")
-    options.add_argument(f"--disk-cache-dir={mkdtemp()}")
-    options.add_argument("--remote-debugging-port=9222")
+    driver = create_driver(browser)
 
-    driver = webdriver.Chrome(options=options, service=service)
     driver.set_page_load_timeout(30)
     driver.implicitly_wait(10)
     driver.get('https://github.com/FernandoCelmer/docker-selenium-lambda')
@@ -44,10 +31,11 @@ def lambda_handler(event, _context):
     driver.quit()
 
     return {
-        'statusCode': 200,
-        'body': {
-            'message': 'Selenium test successful',
-            'page_title': title,
-            'event': event
-        }
+        "statusCode": 200,
+        "body": {
+            "message": "Selenium test successful",
+            "browser": browser,
+            "page_title": title,
+            "event": event,
+        },
     }
