@@ -7,12 +7,14 @@
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange.svg)](https://aws.amazon.com/lambda/)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
 
-Base Dockerfile for AWS Lambda with Python 3.14, including Selenium with Chromium and Firefox support, code quality tools and linting.
+A production-ready Docker image for AWS Lambda with Python 3.14, featuring Selenium web automation with support for Chromium, Firefox, and Tor Browser. Optimized for headless browser automation in serverless environments.
+
+This image provides everything you need to run Selenium-based web scraping, testing, or automation tasks in AWS Lambda with support for multiple browsers. Each browser is available as a separate tag for optimized image sizes.
 
 ## Features
 
 - **Python 3.14** - Latest Python version with build argument support
-- **Selenium 4.15.2** - Web automation framework
+- **Selenium >=4.38.0** - Web automation framework
 - **Chromium** - Headless browser (version 131.0.6778.85) with ChromeDriver
 - **Firefox** - Headless browser with GeckoDriver
 - **Tor Browser** - Privacy-focused browser with Tor network support
@@ -148,7 +150,7 @@ The Dockerfile includes:
 - **Firefox**: Latest Firefox with GeckoDriver (v0.34.0)
 - **Tor Browser**: Tor Browser (v13.0.16) with GeckoDriver and Tor network support
 - All required system dependencies for headless browser operation
-- Selenium Python package (4.15.2)
+- Selenium Python package (>=4.38.0)
 
 The Lambda function automatically detects the browser via `BROWSER` environment variable:
 - Set `BROWSER=chromium` for Chromium
